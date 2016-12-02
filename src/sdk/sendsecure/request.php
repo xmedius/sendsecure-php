@@ -2,12 +2,11 @@
 
 /*********************************************************************************************/
 //
-// Curl methods
+// Request - Curl methods
 //
 /*********************************************************************************************/
 
-#API
-class Api {
+class Request {
 
   public static function get_http_request($query_url, $token) {
     $ch = curl_init();

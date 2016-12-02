@@ -2,9 +2,17 @@
 
 include 'config.php';
 include 'exception.php';
-include 'api.php';
+include 'request.php';
 include 'json_client.php';
-include 'helpers.php';
+include 'attachment.php';
+include 'contact_method.php';
+include 'enterprise_settings.php';
+include 'extension_filter.php';
+include 'recipient.php';
+include 'safebox.php';
+include 'safebox_response.php';
+include 'security_profile.php';
+include 'value.php';
 
 /*********************************************************************************************/
 //
@@ -12,7 +20,6 @@ include 'helpers.php';
 //
 /*********************************************************************************************/
 
-# CLIENT
 class Client {
 
   protected $api_token = null;
@@ -38,7 +45,7 @@ class Client {
 
     // Get portal url
     $query_url = $endpoint . "/services/" . $enterprise_account . "/portal/host";
-    $result = Api::get_http_request($query_url, null);
+    $result = Request::get_http_request($query_url, null);
 
     //Get token
     $application_type = "SendSecure PHP";
@@ -46,7 +53,7 @@ class Client {
     $device_name = "systemtest";
 
     $payload = array('permalink' => $enterprise_account, 'username' =>  USERNAME, 'password' => PASSWORD, 'application_type' => $application_type, 'device_id' => $device_id, 'device_name' => $device_name, 'otp' => $one_time_password);
-    $result = Api::post_http_request($result."api/user_token", json_encode($payload), null);
+    $result = Request::post_http_request($result."api/user_token", json_encode($payload), null);
 
     $obj = json_decode($result);
     if ($obj->{'result'} === true) {

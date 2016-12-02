@@ -26,42 +26,42 @@ class JsonClient {
   # GET
   public function new_safebox($user_email) {
     $query_url = $this->get_sendsecure_endpoint() . "api/v2/safeboxes/new.json?user_email=".$user_email."&locale=".$this->locale;
-    return Api::get_http_request($query_url, $this->api_token);
+    return Request::get_http_request($query_url, $this->api_token);
   }
 
   # POST
   public function upload_file($upload_url, $file_path, $content_type) {
-    return Api::upload_file($upload_url, $file_path, $content_type);
+    return Request::upload_file($upload_url, $file_path, $content_type);
   }
 
   # POST
   public function upload_file_stream($upload_url, $file_stream, $content_type, $filename, $filesize) {
-    return Api::upload_file_stream($upload_url, $file_stream, $content_type, $filename, $filesize);
+    return Request::upload_file_stream($upload_url, $file_stream, $content_type, $filename, $filesize);
   }
 
   # POST
   public function commit_safebox($safebox_json) {
     $query_url = $this->get_sendsecure_endpoint() . "api/v2/safeboxes.json";
-    return Api::post_http_request($query_url, $safebox_json, $this->api_token);
+    return Request::post_http_request($query_url, $safebox_json, $this->api_token);
   }
 
   # GET
   public function get_security_profiles($user_email) {
     $query_url = $this->get_sendsecure_endpoint() . "api/v2/enterprises/".$this->enterprise_account."/security_profiles.json?user_email=".$user_email."&locale=".$this->locale;
-    return Api::get_http_request($query_url, $this->api_token);
+    return Request::get_http_request($query_url, $this->api_token);
   }
 
   # GET
   public function get_enterprise_settings() {
     $query_url = $this->get_sendsecure_endpoint() . "api/v2/enterprises/".$this->enterprise_account."/settings.json?locale=".$this->locale;
-    return Api::get_http_request($query_url, $this->api_token);
+    return Request::get_http_request($query_url, $this->api_token);
   }
 
   # PRIVATE
   private function get_sendsecure_endpoint() {
     if ($this->sendsecure_endpoint == null) {
       $query_url = $this->endpoint . "/services/" . $this->enterprise_account . "/sendsecure/server/url";
-      $this->sendsecure_endpoint = Api::get_http_request($query_url, $this->api_token);
+      $this->sendsecure_endpoint = Request::get_http_request($query_url, $this->api_token);
     }
     return $this->sendsecure_endpoint;
   }
