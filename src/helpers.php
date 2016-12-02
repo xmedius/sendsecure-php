@@ -200,6 +200,7 @@ class SecurityProfile {
   public $reply_enabled = null;
   public $group_replies = null;
   public $double_encryption = array();
+  public $retention_period_type = null;
   public $retention_period_value = null;
   public $retention_period_unit = null;
 
