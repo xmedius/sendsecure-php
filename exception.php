@@ -66,9 +66,6 @@ class SendSecureException extends Exception
 
 }
 
-class UnexpectedServerResponseException extends SendSecureException
-{
-
-}
+class UnexpectedServerResponseException extends SendSecureException {}
 
 ?>

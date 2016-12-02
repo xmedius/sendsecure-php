@@ -1,7 +1,6 @@
-
 <?php
 
-  include 'sendsecure.php';
+  include 'client.php';
 
   $token = Client::get_user_token('acme');
   echo "\n-------------------\n";
