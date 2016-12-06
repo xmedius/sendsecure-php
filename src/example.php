@@ -4,7 +4,7 @@
 
 
   // Get a token or use your token
-  $token = Client::get_user_token('acme');
+  $token = Client::get_user_token('acme', 'device_id', 'systemtest');
   echo "\n-------------------\n";
   echo "\n" . $token . "\n";
   echo "\n-------------------\n";
@@ -38,7 +38,7 @@
   echo "\n-------------------\n";
 
   // Upload a file
-  $upload_file = $json_client->upload_file(json_decode($json_new_safebox)->upload_url,'/home/jlevesque/test.txt','text/plain');
+  $upload_file = $json_client->upload_file(json_decode($json_new_safebox)->upload_url,'/home/jlevesque/logo.png','image/png');
   echo "\n" . $upload_file . "\n";
   echo "\n-------------------\n";
 
@@ -104,7 +104,7 @@
   echo "\n-------------------\n";
 
   // Create an Attachment object
-  $attachment = Attachment::from_file_path('/home/jlevesque/test.txt', 'text/plain');
+  $attachment = Attachment::from_file_path('/home/jlevesque/logo.png','image/png');
   var_dump($attachment);
   echo "\n-------------------\n";
 
@@ -130,8 +130,8 @@
   echo "\n-------------------\n";
 
   // Send the Safebox object
-  $client->commit_safebox($safebox);
-  var_dump($safebox);
+  $safebox_response = $client->commit_safebox($safebox);
+  var_dump($safebox_response);
   echo "\n-------------------\n";
 
 ?>

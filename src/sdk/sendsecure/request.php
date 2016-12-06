@@ -2,12 +2,18 @@
 
 /*********************************************************************************************/
 //
-// Request - Curl methods
+// Request object - Curl http request
 //
 /*********************************************************************************************/
 
 class Request {
 
+  /**
+    * @desc GET HTTP Request with params
+    * @param string $query_url, full url with params
+    *        string $token, access token
+    * @return
+  */
   public static function get_http_request($query_url, $token) {
     $ch = curl_init();
 
@@ -30,6 +36,12 @@ class Request {
     return $result;
   }
 
+  /**
+    * @desc GET HTTP Request with params
+    * @param string $query_url, full url with params
+    *        string $token, access token
+    * @return json, json result
+  */
   public static function post_http_request($query_url, $payload, $token) {
     $ch = curl_init();
 
@@ -54,6 +66,13 @@ class Request {
     return $result;
   }
 
+  /**
+    * @desc POST HTTP Request for file
+    * @param string $query_url, full url
+    *        string $file, file
+    *        string $content_type, file content_type
+    * @return json, json result
+  */
   public static function upload_file($query_url, $file, $content_type) {
     $ch = curl_init();
 
@@ -84,6 +103,15 @@ class Request {
     return $result;
   }
 
+  /**
+    * @desc POST HTTP Request for file stream
+    * @param string $query_url, full url
+    *        string $stream, file stream
+    *        string $content_type, stream content_type
+    *        string $filename, file name
+    *        string $filesize, file size
+    * @return json, json result
+  */
   public static function upload_file_stream($query_url, $stream, $content_type, $filename, $filesize) {
     $ch = curl_init();
 

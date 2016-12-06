@@ -2,7 +2,7 @@
 
 /*********************************************************************************************/
 //
-// SecurityProfile
+// SecurityProfile Object
 //
 /*********************************************************************************************/
 
@@ -13,31 +13,41 @@ class SecurityProfile {
   public $id = null;
   public $name = null;
   public $description = null;
-  public $allowed_login_attempts = null;
-  public $allow_remember_me = null;
-  public $allow_sms = null;
-  public $allow_voice = null;
-  public $allow_email = null;
-  public $code_time_limit = null;
-  public $code_length = null;
-  public $auto_extend_value = null;
-  public $auto_extend_unit = null;
-  public $two_factor_required = null;
-  public $encrypt_attachments = null;
-  public $encrypt_message = null;
-  public $expiration_value = null;
-  public $expiration_unit = null;
-  public $reply_enabled = null;
-  public $group_replies = null;
-  public $double_encryption = array();
-  public $retention_period_type = null;
-  public $retention_period_value = null;
-  public $retention_period_unit = null;
+  public $allowed_login_attempts = null; //Value object
+  public $allow_remember_me = null; //Value object
+  public $allow_sms = null; //Value object
+  public $allow_voice = null; //Value object
+  public $allow_email = null; //Value object
+  public $code_time_limit = null; //Value object
+  public $code_length = null; //Value object
+  public $auto_extend_value = null; //Value object
+  public $auto_extend_unit = null; //Value object
+  public $two_factor_required = null; //Value object
+  public $encrypt_attachments = null; //Value object
+  public $encrypt_message = null; //Value object
+  public $expiration_value = null; //Value object
+  public $expiration_unit = null; //Value object
+  public $reply_enabled = null; //Value object
+  public $group_replies = null; //Value object
+  public $double_encryption = null; //Value object
+  public $retention_period_type = null; //Value object
+  public $retention_period_value = null; //Value object
+  public $retention_period_unit = null; //Value object
 
+  /**
+    * @desc constructor
+    * @param
+    * @return
+  */
   public function __construct() {
 
   }
 
+  /**
+    * @desc build SecurityProfile object from Json
+    * @param json $json
+    * @return SecurityProfile
+  */
   public static function from_json($json) {
     $security_profile = new SecurityProfile();
     $security_profile->created_at = $json->created_at;

@@ -1,8 +1,15 @@
 <?php
 
+/*********************************************************************************************/
+//
+// SendSecureException object
+//
+/*********************************************************************************************/
+
 class SendSecureException extends Exception
 {
 
+    #
     # code message
     # 0XX generic error code, when the server does not behave as expected
     #   1 unexpected server response format
@@ -18,9 +25,15 @@ class SendSecureException extends Exception
     #
     # 404 not found
     # 500 unexpected error
-      #
+    #
 
-    // Redefine the exception so message isn't optional
+    /**
+      * @desc constructor
+      * @param string $code, error code
+      *        string $message, error message
+      *        string $previous, error previous
+      * @return json, request json result
+    */
     public function __construct($code, $message = 'error', Exception $previous = null) {
 
         switch ($code) {

@@ -2,7 +2,7 @@
 
 /*********************************************************************************************/
 //
-// Safebox
+// Safebox object
 //
 /*********************************************************************************************/
 
@@ -16,16 +16,26 @@ class Safebox {
   public $subject = null;
   public $message = null;
 
-  public $recipients = array();
-  public $attachments = array();
+  public $recipients = array(); //Recipient objects
+  public $attachments = array(); //Attchment objects
 
-  public $security_profile = null;
+  public $security_profile = null; //Security profile object
   public $notification_language = null;
 
+  /**
+    * @desc constructor
+    * @param string $user_email, user email
+    * @return
+  */
   public function __construct($user_email) {
     $this->user_email = $user_email;
   }
 
+  /**
+    * @desc build SecurityProfile object from Json
+    * @param
+    * @return Json, json structure for JsonClient
+  */
   public function as_json_for_client() {
 
     $all_recipients = array();
@@ -37,7 +47,7 @@ class Safebox {
     foreach ($this->attachments as $attachment) {
       array_push($all_documents, $attachment->guid);
     }
-    $all_documents = array();
+
     $safebox = array(
       'safebox' => array(
       'guid' => $this->guid,
@@ -58,7 +68,6 @@ class Safebox {
       'public_encryption_key' => $this->public_encryption_key,
       'notification_language' => $this->notification_language));
 
-    echo "--------------------------------------- ***";
     var_dump(json_encode($safebox));
     return json_encode($safebox);
 

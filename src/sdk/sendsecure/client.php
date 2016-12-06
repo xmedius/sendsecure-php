@@ -16,7 +16,7 @@ include 'value.php';
 
 /*********************************************************************************************/
 //
-// Client
+// Client object
 //
 /*********************************************************************************************/
 
@@ -27,9 +27,16 @@ class Client {
   protected $locale = null;
   protected $enterprise_account = null;
 
-  protected $json_client = null;
+  protected $json_client = null; //JsonClient
 
-  # token can be either a user token or a access token
+  /**
+    * @desc constructor
+    * @param string $api_token, api token
+    *        string $enterprise_account, enterprise account
+    *        string $endpoint, endpoint url
+    *        string $locale, language
+    * @return
+  */
   public function __construct($api_token, $enterprise_account, $endpoint = ENDPOINT, $locale = 'en') {
     $this->api_token = $api_token;
     $this->enterprise_account = $enterprise_account;
@@ -38,19 +45,21 @@ class Client {
     $this->json_client = new JsonClient($this->api_token, $this->enterprise_account, $this->endpoint, $this->locale);
   }
 
-  # class method used to acquire a user_token to use authenticate the user for a
-  # enterprise_account: permalink of the enterprise
-  # endpoint: the host of the portal (.com ou .eu), defaults to .co
-  public static function get_user_token($enterprise_account, $endpoint = ENDPOINT, $one_time_password = "") {
+  /**
+    * @desc constructor
+    * @param string $enterprise_account, enterprise account
+    *        string $device_id, device id
+    *        string $device_name, device name
+    *        string $application_type, application type
+    *        string $endpoint, endpoint url
+    *        string $one_time_password, one time password
+    * @return
+  */
+  public static function get_user_token($enterprise_account, $device_id, $device_name, $application_type = "SendSecure PHP", $endpoint = ENDPOINT, $one_time_password = "") {
 
     // Get portal url
     $query_url = $endpoint . "/services/" . $enterprise_account . "/portal/host";
     $result = Request::get_http_request($query_url, null);
-
-    //Get token
-    $application_type = "SendSecure PHP";
-    $device_id = "device_id";
-    $device_name = "systemtest";
 
     $payload = array('permalink' => $enterprise_account, 'username' =>  USERNAME, 'password' => PASSWORD, 'application_type' => $application_type, 'device_id' => $device_id, 'device_name' => $device_name, 'otp' => $one_time_password);
     $result = Request::post_http_request($result."api/user_token", json_encode($payload), null);
@@ -66,7 +75,11 @@ class Client {
   }
 
 
-  #SUBMIT_SAFEBOX
+  /**
+    * @desc submit the SafeBox
+    * @param Safebox, the safebox to submit
+    * @return SafeboxResponse
+  */
   public function submit_safebox($safebox) {
     $this->initialize_safebox($safebox);
     foreach ($safebox->attachments as $attachment) {
@@ -83,7 +96,11 @@ class Client {
   }
 
 
-  #INITIALIZE_SAFEBOX
+  /**
+    * @desc initialize the SafeBox
+    * @param Safebox, the safebox to attach to
+    * @return
+  */
   public function initialize_safebox($safebox) {
     $json = json_decode($this->json_client->new_safebox($safebox->user_email));
     $safebox->guid = $json->{'guid'};
@@ -92,7 +109,12 @@ class Client {
   }
 
 
-  #UPLOAD_ATTACHMENT
+  /**
+    * @desc commit the SafeBox
+    * @param Safebox, the safebox to attach to
+    *        Attachment, the attachment
+    * @return Attachment
+  */
   public function upload_attachment($safebox, $attachment) {
     $json = null;
     if ($attachment->stream == null) {
@@ -105,14 +127,22 @@ class Client {
   }
 
 
-  #COMMITSAFEBOX
+  /**
+    * @desc commit the SafeBox
+    * @param Safebox, the safebox to commit
+    * @return SafeboxResponse
+  */
   public function commit_safebox($safebox) {
     $result = json_decode($this->json_client->commit_safebox($safebox->as_json_for_client()));
     return new SafeboxResponse($result->{"guid"},$result->{"preview_url"},$result->{"encryption_key"});
   }
 
 
-  #DEFAULTSECURITYPROFILE
+  /**
+    * @descthe default SecurityProfile
+    * @param string $user_email, user email
+    * @return SecurityProfile
+  */
   public function default_security_profile($user_email) {
     $id = $this->enterprise_settings()->default_security_profile_id;
     foreach ($this->security_profiles($user_email) as $security_profile) {
@@ -124,7 +154,11 @@ class Client {
   }
 
 
-  #SECURITY_PROFILES
+  /**
+    * @desc get all the SecurityProfile
+    * @param string $user_email, user email
+    * @return Array of SecurityProfile
+  */
   public function security_profiles($user_email) {
     $security_profiles = array();
     $objs = json_decode($this->json_client->get_security_profiles($user_email))->{"security_profiles"};
@@ -135,7 +169,11 @@ class Client {
   }
 
 
-  #ENTERPRISE_SETTINGS
+  /**
+    * @desc get the EnterpriseSettings
+    * @param
+    * @return EnterpriseSettings
+  */
   public function enterprise_settings() {
     return EnterpriseSettings::from_json(json_decode($this->json_client->get_enterprise_settings()));
   }

@@ -3,7 +3,7 @@
 
 /*********************************************************************************************/
 //
-// EnterpriseSettings
+// EnterpriseSettings object
 //
 /*********************************************************************************************/
 
@@ -15,7 +15,7 @@ class EnterpriseSettings {
   public $pdf_language = null;
   public $use_pdfa_audit_records = null;
   public $international_dialing_plan = null;
-  public $extension_filter = null;
+  public $extension_filter = null; //ExtensionFilter object
   public $include_users_in_autocomplete = null;
   public $include_favorites_in_autocomplete = null;
 
@@ -23,6 +23,11 @@ class EnterpriseSettings {
 
   }
 
+  /**
+    * @desc build EnterpriseSettings from json
+    * @param json $json, json returned from the Json client=
+    * @return EnterpriseSettings
+  */
   public static function from_json($json) {
     $enterprise_settings = new EnterpriseSettings();
     $enterprise_settings->default_security_profile_id = $json->default_security_profile_id;
@@ -35,10 +40,6 @@ class EnterpriseSettings {
     $enterprise_settings->include_users_in_autocomplete = $json->include_users_in_autocomplete;
     $enterprise_settings->include_favorites_in_autocomplete = $json->include_favorites_in_autocomplete;
     return $enterprise_settings;
-  }
-
-  public function to_json() {
-
   }
 
 }

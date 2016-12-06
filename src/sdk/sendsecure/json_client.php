@@ -2,7 +2,7 @@
 
 /*********************************************************************************************/
 //
-// Json Client
+// Json Client object
 //
 /*********************************************************************************************/
 
@@ -15,43 +15,78 @@ class JsonClient {
   protected $sendsecure_endpoint = null;
   protected $locale = null;
 
-  # token can be either a user token or a access token
+  /**
+    * @desc constructor
+    * @param string $api_token, api token
+    *        string $enterprise_account, enterprise account
+    *        string $endpoint, endpoint url
+    *        string $locale, language
+    * @return
+  */
   public function __construct($api_token, $enterprise_account, $endpoint = ENDPOINT, $locale = 'en') {
     $this->api_token = $api_token;
     $this->enterprise_account = $enterprise_account;
     $this->endpoint = $endpoint;
     $this->locale = $locale;
   }
-
-  # GET
+  /**
+    * @desc get json of new safebox
+    * @param string $user_email, user email
+    * @return json, request json result
+  */
   public function new_safebox($user_email) {
     $query_url = $this->get_sendsecure_endpoint() . "api/v2/safeboxes/new.json?user_email=".$user_email."&locale=".$this->locale;
     return Request::get_http_request($query_url, $this->api_token);
   }
 
-  # POST
+  /**
+    * @desc upload a file
+    * @param string $upload_url, upload url
+    *        string $file_path, file path
+    *        string $content_type, file content type
+    * @return json, request json result
+  */
   public function upload_file($upload_url, $file_path, $content_type) {
     return Request::upload_file($upload_url, $file_path, $content_type);
   }
 
-  # POST
+  /**
+    * @desc upload a stream
+    * @param string $upload_url, upload url
+    *        string $file_stream, file stream
+    *        string $content_type, file content type
+    *        string $filename, file name
+    *        string $filesize, rfile size
+    * @return json, request json result
+  */
   public function upload_file_stream($upload_url, $file_stream, $content_type, $filename, $filesize) {
     return Request::upload_file_stream($upload_url, $file_stream, $content_type, $filename, $filesize);
   }
-
-  # POST
+  /**
+    * @desc commit a safebox
+    * @param string $safebox_json, json format of the safebox
+    * @return json, request json result
+  */
   public function commit_safebox($safebox_json) {
     $query_url = $this->get_sendsecure_endpoint() . "api/v2/safeboxes.json";
     return Request::post_http_request($query_url, $safebox_json, $this->api_token);
   }
 
-  # GET
+  /**
+    * @desc get all the security profiles
+    * @param string $email, user email
+    * @return json, request json result
+  */
   public function get_security_profiles($user_email) {
     $query_url = $this->get_sendsecure_endpoint() . "api/v2/enterprises/".$this->enterprise_account."/security_profiles.json?user_email=".$user_email."&locale=".$this->locale;
     return Request::get_http_request($query_url, $this->api_token);
   }
 
-  # GET
+  /**
+    * @desc get the enterprise setting
+    * @param
+    * @return json, request json result
+  */
   public function get_enterprise_settings() {
     $query_url = $this->get_sendsecure_endpoint() . "api/v2/enterprises/".$this->enterprise_account."/settings.json?locale=".$this->locale;
     return Request::get_http_request($query_url, $this->api_token);
