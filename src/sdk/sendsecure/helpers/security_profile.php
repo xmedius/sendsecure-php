@@ -1,10 +1,8 @@
-<?php
+<?php namespace SendSecure;
 
-/*********************************************************************************************/
-//
-// SecurityProfile Object
-//
-/*********************************************************************************************/
+/**
+ * Class SafeboxResponse represent the response to a successful creation of a Safebox
+*/
 
 class SecurityProfile {
 
@@ -36,8 +34,6 @@ class SecurityProfile {
 
   /**
     * @desc constructor
-    * @param
-    * @return
   */
   public function __construct() {
 

@@ -1,10 +1,8 @@
-<?php
+<?php namespace SendSecure;
 
-/*********************************************************************************************/
-//
-// Safebox object
-//
-/*********************************************************************************************/
+/**
+ * Class Safebox builds an object to send all the necessary information to create a new Safebox
+ */
 
 class Safebox {
 
@@ -25,7 +23,6 @@ class Safebox {
   /**
     * @desc constructor
     * @param string $user_email, user email
-    * @return
   */
   public function __construct($user_email) {
     $this->user_email = $user_email;
@@ -33,10 +30,9 @@ class Safebox {
 
   /**
     * @desc build SecurityProfile object from Json
-    * @param
     * @return Json, json structure for JsonClient
   */
-  public function as_json_for_client() {
+  public function as_json() {
 
     $all_recipients = array();
     foreach ($this->recipients as $recipient) {
@@ -68,7 +64,6 @@ class Safebox {
       'public_encryption_key' => $this->public_encryption_key,
       'notification_language' => $this->notification_language));
 
-    var_dump(json_encode($safebox));
     return json_encode($safebox);
 
   }

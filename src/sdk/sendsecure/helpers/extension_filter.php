@@ -1,11 +1,8 @@
+<?php namespace SendSecure;
 
-<?php
-
-/*********************************************************************************************/
-//
-// ExtensionFilter object
-//
-/*********************************************************************************************/
+/**
+ * Class ExtensionFilter represent the list of allow/forbid extension for an attachment
+*/
 
 class ExtensionFilter {
 
@@ -15,7 +12,7 @@ class ExtensionFilter {
   /**
     * @desc constructor
     * @param string $mode, mode
-    *        string $list, array of extension
+    * @param string $list, array of extension
     * @return json, request json result
   */
   public function __construct($mode, $list) {

@@ -1,12 +1,10 @@
-<?php
+<?php namespace SendSecure;
 
-/*********************************************************************************************/
-//
-// SendSecureException object
-//
-/*********************************************************************************************/
+/**
+ * Class SendSecureException
+ */
 
-class SendSecureException extends Exception
+class SendSecureException extends \Exception
 {
 
     #
@@ -27,14 +25,16 @@ class SendSecureException extends Exception
     # 500 unexpected error
     #
 
+    public $response_content;
+
     /**
       * @desc constructor
       * @param string $code, error code
-      *        string $message, error message
-      *        string $previous, error previous
+      * @param string $message, error message
+      * @param string $previous, error previous
       * @return json, request json result
     */
-    public function __construct($code, $message = 'error', Exception $previous = null) {
+    public function __construct($code, $message = 'unexpected server response format', $response_content = '', Exception $previous = null) {
 
         switch ($code) {
           case 100:
@@ -68,6 +68,7 @@ class SendSecureException extends Exception
             $message = 'unexpected exception';
             break;
         }
+        $this->response_content = $response_content;
         // make sure everything is assigned properly
         parent::__construct($message, $code, $previous);
     }

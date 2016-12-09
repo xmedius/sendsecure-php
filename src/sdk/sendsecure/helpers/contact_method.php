@@ -1,23 +1,20 @@
-<?php
+<?php namespace SendSecure;
 
-/*********************************************************************************************/
-//
-// ContactMethod object
-//
-/*********************************************************************************************/
+/**
+ * Class ContactMethod builds an object to create a phone number destination
+*/
 
 class ContactMethod {
 
-  public $destination_type = "cell_phone";
+  public $destination_type = null;
   public $destination = null;
 
   /**
     * @desc constructor
     * @param string $destination, phone number or email
-    *        string $destination_type, destination type
-    * @return
+    * @param string $destination_type, destination type
   */
-  public function __construct($destination, $destination_type = "cell_phone") {
+  public function __construct($destination, $destination_type = DestinationType::cell) {
     $this->destination = $destination;
     $this->destination_type = $destination_type;
   }
@@ -25,7 +22,7 @@ class ContactMethod {
   /**
     * @desc build attachment from file
     * @param string $file_path, file path
-    *        string $content_type, content type
+    * @param string $content_type, content type
     * @return Attachment
   */
   public function to_json() {

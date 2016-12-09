@@ -1,10 +1,8 @@
-<?php
+<?php namespace SendSecure;
 
-/*********************************************************************************************/
-//
-// Attachment object
-//
-/*********************************************************************************************/
+/**
+ * Class Attachment builds an object to be uploaded to the server. Can be created either with a File or InputStream
+*/
 
 class Attachment {
 
@@ -22,7 +20,7 @@ class Attachment {
   /**
     * @desc build attachment from file
     * @param string $file_path, file path
-    *        string $content_type, content type
+    * @param string $content_type, content type
     * @return Attachment
   */
   public static function from_file_path($file_path, $content_type) {
@@ -35,9 +33,9 @@ class Attachment {
   /**
     * @desc build attachment from stream
     * @param string $stream, stream
-    *        string $filename, filename
-    *        string $content_type, content type
-    *        string $size, file size
+    * @param string $filename, filename
+    * @param string $content_type, content type
+    * @param string $size, file size
     * @return Attachment
   */
   public static function from_file_stream($stream, $filename, $content_type, $size) {

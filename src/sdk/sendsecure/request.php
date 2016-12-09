@@ -1,17 +1,15 @@
-<?php
+<?php namespace SendSecure;
 
-/*********************************************************************************************/
-//
-// Request object - Curl http request
-//
-/*********************************************************************************************/
+/**
+ * Class Request - Curl http request
+ */
 
 class Request {
 
   /**
     * @desc GET HTTP Request with params
     * @param string $query_url, full url with params
-    *        string $token, access token
+    * @param string $token, access token
     * @return
   */
   public static function get_http_request($query_url, $token) {
@@ -33,13 +31,13 @@ class Request {
     }
 
     curl_close($ch);
-    return $result;
+    return $result;*/
   }
 
   /**
     * @desc GET HTTP Request with params
     * @param string $query_url, full url with params
-    *        string $token, access token
+    * @param string $token, access token
     * @return json, json result
   */
   public static function post_http_request($query_url, $payload, $token) {
@@ -69,8 +67,8 @@ class Request {
   /**
     * @desc POST HTTP Request for file
     * @param string $query_url, full url
-    *        string $file, file
-    *        string $content_type, file content_type
+    * @param string $file, file
+    * @param string $content_type, file content_type
     * @return json, json result
   */
   public static function upload_file($query_url, $file, $content_type) {
@@ -106,10 +104,10 @@ class Request {
   /**
     * @desc POST HTTP Request for file stream
     * @param string $query_url, full url
-    *        string $stream, file stream
-    *        string $content_type, stream content_type
-    *        string $filename, file name
-    *        string $filesize, file size
+    * @param string $stream, file stream
+    * @param string $content_type, stream content_type
+    * @param string $filename, file name
+    * @param string $filesize, file size
     * @return json, json result
   */
   public static function upload_file_stream($query_url, $stream, $content_type, $filename, $filesize) {

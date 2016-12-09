@@ -1,10 +1,10 @@
 <?php
 
-  include 'sdk/sendsecure/client.php';
+  include 'src/sdk/sendsecure/client.php';
 
 
   // Get a token or use your token
-  $token = Client::get_user_token('acme', 'device_id', 'systemtest');
+  $token = \SendSecure\Client::get_user_token('acme', USERNAME, PASSWORD, 'device_id', 'systemtest');
   echo "\n-------------------\n";
   echo "\n" . $token . "\n";
   echo "\n-------------------\n";
@@ -18,7 +18,7 @@
 
 
   // Create a Json Client
-  $json_client = new JsonClient($token, 'acme');
+  $json_client = new \SendSecure\JsonClient($token, 'acme');
   echo "\n" . $json_client . "\n";
   echo "\n-------------------\n";
 
@@ -38,7 +38,7 @@
   echo "\n-------------------\n";
 
   // Upload a file
-  $upload_file = $json_client->upload_file(json_decode($json_new_safebox)->upload_url,'/home/jlevesque/logo.png','image/png');
+  $upload_file = $json_client->upload_file(json_decode($json_new_safebox)->upload_url,'/path/to/my/png/file.png','image/png');
   echo "\n" . $upload_file . "\n";
   echo "\n-------------------\n";
 
@@ -52,8 +52,8 @@
     'reply_enabled' => true,
     'group_replies' => true,
     'expiration_value' => 1,
-    'expiration_unit' => 'months',
-    'retention_period_type' => 'discard_at_expiration',
+    'expiration_unit' => \SendSecure\TimeUnit::months,
+    'retention_period_type' => \SendSecure\RetentionPeriodType::discard_at_expiration,
     'encrypt_message' => true,
     'double_encryption' => false,
     'public_encryption_key' => json_decode($json_new_safebox)->public_encryption_key,
@@ -73,7 +73,7 @@
 
 
   // Create a Client object
-  $client = new Client($token, 'acme');
+  $client = new \SendSecure\Client($token, 'acme');
   var_dump($client);
   echo "\n-------------------\n";
 
@@ -93,23 +93,23 @@
   echo "\n-------------------\n";
 
   // Create a ContactMethod object
-  $contact_method = new ContactMethod('514-514-5144');
+  $contact_method = new \SendSecure\ContactMethod('514-514-5144');
   var_dump($contact_method);
   echo "\n-------------------\n";
 
   // Create a Recipient object
-  $recipient = new Recipient('test@test.com', 'Test', 'Test', 'acme');
+  $recipient = new \SendSecure\Recipient('test@test.com', 'Test', 'Test', 'acme');
   $recipient->contact_methods = [$contact_method];
   var_dump($recipient);
   echo "\n-------------------\n";
 
   // Create an Attachment object
-  $attachment = Attachment::from_file_path('/home/jlevesque/logo.png','image/png');
+  $attachment = \SendSecure\Attachment::from_file_path('/home/jlevesque/logo.png','image/png');
   var_dump($attachment);
   echo "\n-------------------\n";
 
   // Create a Safebox object
-  $safebox = new Safebox('test@test.com');
+  $safebox = new \SendSecure\Safebox('test@test.com');
   $safebox->subject = 'subject';
   $safebox->message = 'message';
   $safebox->recipients = [$recipient];

@@ -1,11 +1,8 @@
+<?php namespace SendSecure;
 
-<?php
-
-/*********************************************************************************************/
-//
-// EnterpriseSettings object
-//
-/*********************************************************************************************/
+/**
+ * Class EnterpriseSettings represent the settings of an Enterprise Account
+*/
 
 class EnterpriseSettings {
 

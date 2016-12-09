@@ -1,12 +1,9 @@
-<?php
+<?php namespace SendSecure;
 
-/*********************************************************************************************/
-//
-// Json Client object
-//
-/*********************************************************************************************/
+/**
+ * Class JsonClient
+ */
 
-//JSONCLIENT
 class JsonClient {
 
   protected $api_token = null;
@@ -16,77 +13,106 @@ class JsonClient {
   protected $locale = null;
 
   /**
-    * @desc constructor
-    * @param string $api_token, api token
-    *        string $enterprise_account, enterprise account
-    *        string $endpoint, endpoint url
-    *        string $locale, language
-    * @return
-  */
+   * JsonClient object constructor. Used to make call to create a SendSecure
+   *
+   * @param api_token
+   *            The API Token to be used for authentication with the SendSecure service
+   * @param enterprise_account
+   *            The SendSecure enterprise account
+   * @param endpoint
+   *            The URL to the SendSecure service ("https://portal.xmedius.com" will be used by default if empty)
+   * @param locale
+   *            The locale in which the server errors will be returned ("en" will be used by default if empty)
+   */
   public function __construct($api_token, $enterprise_account, $endpoint = ENDPOINT, $locale = 'en') {
     $this->api_token = $api_token;
     $this->enterprise_account = $enterprise_account;
     $this->endpoint = $endpoint;
     $this->locale = $locale;
   }
+
   /**
-    * @desc get json of new safebox
-    * @param string $user_email, user email
-    * @return json, request json result
-  */
+   * Pre-creates a SafeBox on the SendSecure system and initializes the Safebox object accordingly.
+   *
+   * @param user_email
+   *            The email address of a SendSecure user of the current enterprise account
+   * @return The json containing the guid, public encryption key and upload url of the initialize SafeBox
+   * @throws SendSecureException
+   */
   public function new_safebox($user_email) {
     $query_url = $this->get_sendsecure_endpoint() . "api/v2/safeboxes/new.json?user_email=".$user_email."&locale=".$this->locale;
     return Request::get_http_request($query_url, $this->api_token);
   }
 
   /**
-    * @desc upload a file
-    * @param string $upload_url, upload url
-    *        string $file_path, file path
-    *        string $content_type, file content type
-    * @return json, request json result
-  */
+   * Uploads the specified file as an Attachment of the specified SafeBox.
+   *
+   * @param upload_url
+   *            The url returned by the initializeSafeBox. Can be used multiple time
+   * @param file_path
+   *            The file to upload
+   * @param content_type
+   *            The MIME content type of the uploaded file
+   * @return The json containing the guid of the uploaded file
+   * @throws SendSecureException
+   */
   public function upload_file($upload_url, $file_path, $content_type) {
     return Request::upload_file($upload_url, $file_path, $content_type);
   }
 
   /**
-    * @desc upload a stream
-    * @param string $upload_url, upload url
-    *        string $file_stream, file stream
-    *        string $content_type, file content type
-    *        string $filename, file name
-    *        string $filesize, rfile size
-    * @return json, request json result
-  */
+   * Uploads the specified file as an Attachment of the specified SafeBox.
+   *
+   * @param upload_url
+   *            The url returned by the initializeSafeBox. Can be used multiple time
+   * @param file_stream
+   *            The InputStream containing the file to upload
+   * @param content_type
+   *            The MIME content type
+   * @param filename
+   *            The filename (with extension)
+   * @param filesize
+   *            The size
+   * @return The json containing the guid of the uploaded file
+   * @throws SendSecureException
+   */
   public function upload_file_stream($upload_url, $file_stream, $content_type, $filename, $filesize) {
     return Request::upload_file_stream($upload_url, $file_stream, $content_type, $filename, $filesize);
   }
+
   /**
-    * @desc commit a safebox
-    * @param string $safebox_json, json format of the safebox
-    * @return json, request json result
-  */
+   * Finalizes the creation (commit) of the SafeBox on the SendSecure system. This actually "Sends" the SafeBox with
+   * all content and contact info previously specified.
+   *
+   * @param safebox_json
+   *            The full json expected by the server
+   * @return The json containing the guid, preview url and encryption key of the created SafeBox
+   * @throws SendSecureException
+   */
   public function commit_safebox($safebox_json) {
     $query_url = $this->get_sendsecure_endpoint() . "api/v2/safeboxes.json";
     return Request::post_http_request($query_url, $safebox_json, $this->api_token);
   }
 
   /**
-    * @desc get all the security profiles
-    * @param string $email, user email
-    * @return json, request json result
-  */
+   * Retrieves all available security profiles of the enterprise account for a specific user.
+   *
+   * @param user_email
+   *            The email address of a SendSecure user of the current enterprise account
+   * @return The json containing a list of Security Profile
+   * @throws SendSecureException
+   */
   public function get_security_profiles($user_email) {
     $query_url = $this->get_sendsecure_endpoint() . "api/v2/enterprises/".$this->enterprise_account."/security_profiles.json?user_email=".$user_email."&locale=".$this->locale;
     return Request::get_http_request($query_url, $this->api_token);
   }
 
   /**
-    * @desc get the enterprise setting
-    * @param
-    * @return json, request json result
-  */
+   * Get the Enterprise Settings of the current enterprise account
+   *
+   * @return The json containing the enterprise settings
+   * @throws SendSecureException
+   */
   public function get_enterprise_settings() {
     $query_url = $this->get_sendsecure_endpoint() . "api/v2/enterprises/".$this->enterprise_account."/settings.json?locale=".$this->locale;
     return Request::get_http_request($query_url, $this->api_token);

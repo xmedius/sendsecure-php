@@ -1,10 +1,8 @@
-<?php
+<?php namespace SendSecure;
 
-/*********************************************************************************************/
-//
-// Value object
-//
-/*********************************************************************************************/
+/**
+ * Class Value represent the value on a SecurityProfile
+ */
 
 class Value {
 
@@ -14,8 +12,7 @@ class Value {
   /**
     * @desc constructor
     * @param string $value, value
-    *        string $modifiable, boolean
-    * @return
+    * @param string $modifiable, boolean
   */
   public function __construct($value, $modifiable) {
     $this->value = $value;
@@ -24,11 +21,9 @@ class Value {
 
 }
 
-/*********************************************************************************************/
-//
-// Listed values
-//
-/*********************************************************************************************/
+/**
+ * Listed values
+ */
 
 //Time units
 abstract class TimeUnit {

@@ -1,10 +1,8 @@
-<?php
+<?php namespace SendSecure;
 
-/*********************************************************************************************/
-//
-// Recipient object
-//
-/*********************************************************************************************/
+/**
+ * Class Recipient builds an object to create a recipient to the SafeBox
+*/
 
 class Recipient {
 
@@ -18,21 +16,20 @@ class Recipient {
   /**
     * @desc constructor
     * @param string $email, recipient email
-    *        string $first_name, recipient first name
-    *        string $last_name, recipient last name
-    *        string $company_name, recipient company name
-    * @return
+    * @param string $first_name, recipient first name
+    * @param string $last_name, recipient last name
+    * @param string $company_name, recipient company name
   */
-  public function __construct($email, $first_name, $last_name, $company_name) {
+  public function __construct($email, $first_name, $last_name, $company_name, $contact_methods = []) {
     $this->email = $email;
     $this->first_name = $first_name;
     $this->last_name = $last_name;
     $this->company_name = $company_name;
+    $this->contact_methods = $contact_methods;
   }
 
   /**
     * @desc get json version of this object (JsonClient format)
-    * @param
     * @return Json, json structure for JsonClient
   */
   public function to_json() {
