@@ -1,5 +1,8 @@
 <?php namespace SendSecure;
 
+// TODO Add support for php-http-client, rewrite this class
+// https://github.com/sendgrid/php-http-client
+
 /**
  * Class Request - Curl http request
  */
