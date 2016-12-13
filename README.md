@@ -55,26 +55,24 @@ Here is the minimum code to get such a user-based API Token.
 
   include 'sdk/sendsecure/client.php';
 
-  $token = Client::get_user_token('acme');
+  $token = Client::get_user_token('deathstar', 'darthvader', 'd@Rk$1De', 'DV-TIE/x1', 'TIE Advanced x1', 'The Force App');
   echo "\n" . $token . "\n";
 
 ?>
-
 ```
 
 
-## SafeBox Creation
+## SafeBox Creation (Using SafeBox Helper Class)
 
 Here is the minimum required code to create a SafeBox – with 1 recipient, a subject, a message and 1 attachment.
 This example uses the user's *default* security profile (which requires to be set in the account).
-
-### With SafeBox Helper Class
 
 ```php
 <?php
 
   include 'sdk/sendsecure/client.php';
 
+  // Define parameters of the SendSecure user (sender/SafeBox Owner)
   $user_email = 'darthvader@empire.com';
   $token = 'USER|1d495165-4953-4457-8b5b-4fcf801e621a';
   $enterprise_account = 'deathstar';
@@ -85,15 +83,13 @@ This example uses the user's *default* security profile (which requires to be se
   // Get the default SecurityProfile object
   $security_profile = $client->default_security_profile($user_email);
 
-  // Create a ContactMethod object
-  $contact_method = new ContactMethod('555-123-4567');
-
-  // Create a Recipient object
-  $recipient = new Recipient('lukeskywalker@rebels.com', 'Test', 'Test', 'acme');
+  // Create a Recipient object and a ContactMethod object
+  $recipient = new Recipient('lukeskywalker@rebels.com');
+  $contact_method = new ContactMethod('555-232-5334');
   $recipient->contact_methods = [$contact_method];
 
   // Create an Attachment object
-  $attachment = Attachment::from_file_path('/home/test/test.txt', 'text/plain');
+  $attachment = Attachment::from_file_path('Birth_Certificate.pdf', 'application/pdf"');
 
   // Create a Safebox object
   $safebox = new Safebox($user_email);
@@ -104,20 +100,13 @@ This example uses the user's *default* security profile (which requires to be se
   $safebox->security_profile = $security_profile;
   $safebox->notification_language = 'en';
 
-  // Submit a Safebox object
+  // Submit the Safebox object
   $safebox_response = $client->submit_safebox($safebox);
   var_dump($safebox_response);
 
 ?>
-
 ```
 
-<!-- ### Without SafeBox Helper Class
-
-```php
-TBD
-```
- -->
 <a name="usage"></a>
 # Usage
 
