@@ -1,138 +1,41 @@
 <?php
 
-  include 'src/sdk/sendsecure/client.php';
+include 'src/sdk/sendsecure/client.php';
 
+$user_email = '';
+$endpoint = '';
+$username = '';
+$password = '';
+$enterprise = '';
 
-  // Get a token or use your token
-  $token = \SendSecure\Client::get_user_token('acme', USERNAME, PASSWORD, 'device_id', 'systemtest');
-  echo "\n-------------------\n";
-  echo "\n" . $token . "\n";
-  echo "\n-------------------\n";
+//CALL TO GET USER TOKEN + USER ID
+$token = \SendSecure\Client::get_user_token($enterprise, $username, $password, 'device_id', 'test', 'SendSecure PHP', $endpoint);
+echo "\n-------------------\n";
+echo "\n" . $token->{'token'} . "\n";
+echo "\n" . $token->{'user_id'} . "\n";
+echo "\n-------------------\n";
 
+//CREATE A SENDSECURE CLIENT
+$client = new \SendSecure\Client($token->{'token'} , $token->{'user_id'}, $enterprise, $endpoint);
 
-  /*********************************************************************************************/
-  //
-  // Json Client Usage
-  //
-  /*********************************************************************************************/
+//SUBMIT A SAFEBOX WITH 1 RECIPIENT and 1 ATTACHMENT
+$safebox = new \SendSecure\Safebox($user_email);
+$safebox->subject = 'Subject';
+$safebox->message = 'Message';
 
+$contact_method = new \SendSecure\ContactMethod('55555');
+$guest_options = new \SendSecure\GuestOptions('Test');
+$guest_options->add_contact_method($contact_method);
+$participant = new \SendSecure\Participant('user@email.com', 'first_name', 'last_name', $guest_options);
 
-  // Create a Json Client
-  $json_client = new \SendSecure\JsonClient($token, 'acme');
-  echo "\n" . $json_client . "\n";
-  echo "\n-------------------\n";
+$attachment = \SendSecure\Attachment::from_file_path('/path/to/file','application/pdf');
+$safebox->participants = [$participant];
+$safebox->attachments = [$attachment];
 
-  // Get the Enterprise setting
-  $json_enterprise_setting = $json_client->get_enterprise_settings();
-  echo "\n" . $json_enterprise_setting . "\n";
-  echo "\n-------------------\n";
+$client->submit_safebox($safebox);
 
-  // Get the Security profiles
-  $json_security_profiles= $json_client->get_security_profiles('test@test.com');
-  echo "\n" . $json_security_profiles . "\n";
-  echo "\n-------------------\n";
-
-  // Create a Safebox
-  $json_new_safebox = $json_client->new_safebox('test@test.com');
-  echo "\n" . $json_new_safebox . "\n";
-  echo "\n-------------------\n";
-
-  // Upload a file
-  $upload_file = $json_client->upload_file(json_decode($json_new_safebox)->upload_url,'/path/to/my/png/file.png','image/png');
-  echo "\n" . $upload_file . "\n";
-  echo "\n-------------------\n";
-
-  // Commit the safebox
-  $payload = array('safebox' => array(
-    'guid' => json_decode($json_new_safebox)->guid,
-    'recipients' => array(array("email" => "test@test.com")),
-    'subject' => "subject",
-    'message' => "message",
-    'security_profile_id' => 39,
-    'reply_enabled' => true,
-    'group_replies' => true,
-    'expiration_value' => 1,
-    'expiration_unit' => \SendSecure\TimeUnit::months,
-    'retention_period_type' => \SendSecure\RetentionPeriodType::discard_at_expiration,
-    'encrypt_message' => true,
-    'double_encryption' => false,
-    'public_encryption_key' => json_decode($json_new_safebox)->public_encryption_key,
-    'notification_language' => 'en'));
-  $payload = json_encode($payload);
-
-  $commit_safebox = $json_client->commit_safebox($payload);
-  echo "\n" . $commit_safebox . "\n";
-  echo "\n-------------------\n";
-
-
-  /*********************************************************************************************/
-  //
-  // Client Usage
-  //
-  /*********************************************************************************************/
-
-
-  // Create a Client object
-  $client = new \SendSecure\Client($token, 'acme');
-  var_dump($client);
-  echo "\n-------------------\n";
-
-  // Get the EnterpriseSettings object
-  $enterprise_setting = $client->enterprise_settings();
-  var_dump($enterprise_setting);
-  echo "\n-------------------\n";
-
-  // Get all the  SecurityProfile objects
-  $security_profiles = $client->security_profiles('test@test.com');
-  var_dump($security_profiles);
-  echo "\n-------------------\n";
-
-  // Get the default SecurityProfile object
-  $security_profile = $client->default_security_profile('test@test.com');
-  var_dump($security_profile);
-  echo "\n-------------------\n";
-
-  // Create a ContactMethod object
-  $contact_method = new \SendSecure\ContactMethod('514-514-5144');
-  var_dump($contact_method);
-  echo "\n-------------------\n";
-
-  // Create a Recipient object
-  $recipient = new \SendSecure\Recipient('test@test.com', 'Test', 'Test', 'acme');
-  $recipient->contact_methods = [$contact_method];
-  var_dump($recipient);
-  echo "\n-------------------\n";
-
-  // Create an Attachment object
-  $attachment = \SendSecure\Attachment::from_file_path('/home/jlevesque/logo.png','image/png');
-  var_dump($attachment);
-  echo "\n-------------------\n";
-
-  // Create a Safebox object
-  $safebox = new \SendSecure\Safebox('test@test.com');
-  $safebox->subject = 'subject';
-  $safebox->message = 'message';
-  $safebox->recipients = [$recipient];
-  $safebox->attachments = [$attachment];
-  $safebox->security_profile = $security_profile;
-  $safebox->notification_language = 'en';
-  var_dump($safebox);
-  echo "\n-------------------\n";
-
-  // Initialize a Safebox object
-  $client->initialize_safebox($safebox);
-  var_dump($safebox);
-  echo "\n-------------------\n";
-
-  // Upload an attachment to a Safebox object
-  $client->upload_attachment($safebox, $attachment);
-  var_dump($safebox);
-  echo "\n-------------------\n";
-
-  // Send the Safebox object
-  $safebox_response = $client->commit_safebox($safebox);
-  var_dump($safebox_response);
-  echo "\n-------------------\n";
+var_dump($safebox);
+echo "\n-------------------\n";
 
 ?>
 

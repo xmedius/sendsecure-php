@@ -1,32 +1,20 @@
 <?php namespace SendSecure;
 
-include 'config.php';
 include 'exception.php';
-include 'utils/response.php';
-include 'utils/client.php';
 include 'request.php';
 include 'json_client.php';
-include 'helpers/attachment.php';
-include 'helpers/contact_method.php';
-include 'helpers/enterprise_settings.php';
-include 'helpers/extension_filter.php';
-include 'helpers/recipient.php';
-include 'helpers/safebox.php';
-include 'helpers/safebox_response.php';
-include 'helpers/security_profile.php';
-include 'helpers/value.php';
+include 'helpers/helpers.php';
 
 /**
  * Class Client
  */
-
 class Client {
 
   protected $api_token = null;
   protected $endpoint = null;
   protected $locale = null;
   protected $enterprise_account = null;
-
+  protected $user_id = null;
   protected $json_client = null; //JsonClient
 
   /**
@@ -34,6 +22,8 @@ class Client {
    *
    * @param api_token
    *            The API Token to be used for authentication with the SendSecure service
+   * @param user_id
+   *            The user id
    * @param enterprise_account
    *            The SendSecure enterprise account
    * @param endpoint
@@ -41,12 +31,13 @@ class Client {
    * @param locale
    *            The locale in which the server errors will be returned ("en" will be used by default if empty)
    */
-  public function __construct($api_token, $enterprise_account, $endpoint = ENDPOINT, $locale = 'en') {
+  public function __construct($api_token, $user_id, $enterprise_account, $endpoint = ENDPOINT, $locale = 'en') {
     $this->api_token = $api_token;
+    $this->user_id = $user_id;
     $this->enterprise_account = $enterprise_account;
     $this->endpoint = $endpoint;
     $this->locale = $locale;
-    $this->json_client = new JsonClient($this->api_token, $this->enterprise_account, $this->endpoint, $this->locale);
+    $this->json_client = new JsonClient($this->api_token, $this->user_id, $this->enterprise_account, $this->endpoint, $this->locale);
   }
 
   /**
@@ -74,31 +65,29 @@ class Client {
   public static function get_user_token($enterprise_account, $username, $password, $device_id, $device_name, $application_type = "SendSecure PHP", $endpoint = ENDPOINT, $one_time_password = "") {
 
     // Get portal url
-    $query_url = $endpoint . "/services/" . $enterprise_account . "/portal/host";
-    $result = Request::get_http_request($query_url, null);
+    $query_url = "/services/" . $enterprise_account . "/portal/host";
+    $result = Request::get_http_request($endpoint, $query_url, null);
 
     $payload = array('permalink' => $enterprise_account, 'username' =>  $username, 'password' => $password, 'application_type' => $application_type, 'device_id' => $device_id, 'device_name' => $device_name, 'otp' => $one_time_password);
-    $result = Request::post_http_request($result."api/user_token", json_encode($payload), null);
+    $result = Request::post_http_request($result, "api/user_token", json_encode($payload), null);
 
     $obj = json_decode($result);
     if ($obj->{'result'} === true) {
-      $result =  $obj->{'token'};
+      return $obj;
     } else {
       throw new SendSecureException($obj->{'code'}, $obj->{'message'});
     }
-
-    return $result;
   }
 
 
   /**
-   * This method is a high-level combo that {@link #initializeSafebox initializes} the SafeBox,
-   * {@link #uploadAttachment uploads} all attachments and {@link #commitSafebox commits} the SafeBox.
+   * This method is a high-level combo that initializes the SafeBox,
+   * uploads all attachments and commits the SafeBox.
    *
    * @param safebox
    *            A non-initialized Safebox object with security profile, recipient(s), subject, message and attachments
    *            (not yet uploaded) already defined.
-   * @return {@link com.xmedius.sendsecure.helper.SafeboxResponse SafeboxResponse}
+   * @return The updated safebox
    * @throws SendSecureException
    */
   public function submit_safebox($safebox) {
@@ -106,11 +95,12 @@ class Client {
     foreach ($safebox->attachments as $attachment) {
       $this->upload_attachment($safebox, $attachment);
     }
-    if($safebox->security_profile == null){
-      if($this->default_security_profile() == null){
+    if($safebox->security_profile_id == null){
+      $default_security_profile = $this->default_security_profile($safebox->user_email);
+      if($default_security_profile == null){
         throw new SendSecureException(0, "No Security Profile configured");
       } else {
-        $safebox->security_profile = $this->default_security_profile();
+        $safebox->security_profile_id = $default_security_profile->get_id();
       }
     }
     return $this->commit_safebox($safebox);
@@ -155,6 +145,17 @@ class Client {
     return $attachment;
   }
 
+  public function upload_reply_attachment($url, $attachment) {
+    $json = null;
+    if ($attachment->stream == null) {
+      $json = json_decode($this->json_client->upload_file($url, $attachment->file_path, $attachment->content_type));
+    } else {
+      $json = json_decode($this->json_client->upload_file_stream($url, $attachment->stream, $attachment->content_type, $attachment->file_size));
+    }
+    $attachment->guid = $json->{'temporary_document'}->{'document_guid'};
+    return $attachment;
+  }
+
 
   /**
    * Finalizes the creation (commit) of the SafeBox on the SendSecure system. This actually "Sends" the SafeBox with
@@ -163,29 +164,39 @@ class Client {
    * @param safebox
    *            A Safebox object already initialized, with security profile, recipient(s), subject and message already
    *            defined, and attachments already uploaded.
-   * @return {@link com.xmedius.sendsecure.helper.SafeboxResponse SafeboxResponse}
+   * @return The updated Safebox object.
    * @throws SendSecureException
    */
   public function commit_safebox($safebox) {
-    $result = json_decode($this->json_client->commit_safebox($safebox->as_json()));
-    return new SafeboxResponse($result->{"guid"},$result->{"preview_url"},$result->{"encryption_key"});
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    if(empty($safebox->participants)) {
+      throw new SendSecureException(0, "Participants cannot be empty");
+    }
+    if($safebox->security_profile_id == null) {
+      throw new SendSecureException(0, "No Security Profile configured");
+    }
+
+    $result = json_decode($this->json_client->commit_safebox($safebox->to_json()));
+    return $safebox->update_after_commit($result);
   }
 
 
   /**
-   * Retrieves the default {@link com.xmedius.sendsecure.helper.SecurityProfile security profile} of the enterprise
+   * Retrieves the default security profile of the enterprise
    * account for a specific user. A default security profile must have been set in the enterprise account, otherwise
    * the method will return nothing.
    *
    * @param user_email
    *            The email address of a SendSecure user of the current enterprise account
-   * @return Default security profile of the enterprise, with all its setting values/properties.
+   * @return Default SecurityProfile of the enterprise, with all its setting values/properties.
    * @throws SendSecureException
    */
   public function default_security_profile($user_email) {
-    $id = $this->enterprise_settings()->default_security_profile_id;
+    $id = $this->enterprise_settings()->get_default_security_profile_id();
     foreach ($this->security_profiles($user_email) as $security_profile) {
-      if ($security_profile->id == $id) {
+      if ($security_profile->get_id() == $id) {
         return $security_profile;
         break;
       }
@@ -219,6 +230,255 @@ class Client {
    */
   public function enterprise_settings() {
     return EnterpriseSettings::from_json(json_decode($this->json_client->get_enterprise_settings()));
+  }
+
+  /**
+   * Retrieves all the current user's settings specific to SendSecure Account
+   *
+   * @return All values/properties of the user's settings specific to SendSecure.
+   * @throws SendSecureException
+   */
+  public function user_settings() {
+    return UserSettings::from_json(json_decode($this->json_client->get_user_settings()));
+  }
+
+  public function get_favorites() {
+    $favorites = array();
+    $response = json_decode($this->json_client->get_favorites())->{'favorites'};
+    foreach ($response as $favorite) {
+      array_push($favorites, Favorite::from_json($favorite));
+    }
+    return $favorites;
+  }
+
+  public function create_favorite($favorite) {
+    $response = json_decode($this->json_client->create_favorite($favorite->to_json()));
+    return Favorite::from_json($response);
+  }
+
+  public function update_favorite($favorite) {
+    $response = json_decode($this->json_client->update_favorite($favorite->get_id(), $favorite->to_json()));
+    return Favorite::from_json($response);
+  }
+
+  public function delete_favorite($favorite) {
+    return $this->json_client->delete_favorite($favorite->get_id());
+  }
+
+  public function delete_favorite_contact_methods($favorite, $contact_method_ids) {
+    $favorite->prepare_to_destroy_contact_methods($contact_method_ids);
+    return $this->update_favorite($favorite);
+  }
+
+  public function create_participant($safebox, $participant) {
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    $response = json_decode($this->json_client->create_participant($safebox->guid, $participant->to_json()));
+    return Participant::from_json($response);
+  }
+
+  public function update_participant($safebox, $participant) {
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    if($participant->get_id() == null) {
+      throw new SendSecureException(0, "Participant ID cannot be null");
+    }
+    $response = json_decode($this->json_client->update_participant($safebox->guid, $participant->to_json(), $participant->get_id()));
+    //TODO: Instead of returning a new participant object, update the existing $participant
+    return Participant::from_json($response);
+  }
+
+  public function delete_participant_contact_methods($safebox, $participant, $contact_method_ids) {
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    if($participant->get_id() == null) {
+      throw new SendSecureException(0, "Participant ID cannot be null");
+    }
+    $participant->prepare_to_destroy_contact_methods($contact_method_ids);
+    return $this->update_participant($safebox, $participant);
+  }
+
+  public function get_safebox_info($safebox, $sections = []) {
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    $response = json_decode($this->json_client->get_safebox_info($safebox->guid, implode(",", $sections)));
+    return Safebox::from_json($response->{'safebox'});
+  }
+
+  public function get_safeboxes($url, $search_params=[]) {
+    $params = implode(',',
+      array_map(function ($v, $k) { return $k.'='.$v; },
+      $search_params,
+      array_keys($search_params)
+    ));
+    return json_decode($this->json_client->get_safeboxes($url, $params));
+  }
+
+  public function get_safebox_participants($safebox){
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    $participants = array();
+    $response = json_decode($this->json_client->get_safebox_participants($safebox->guid))->{'participants'};
+    foreach ($response as $participant) {
+      array_push($participants, Participant::from_json($participant));
+    }
+    return $participants;
+  }
+
+  public function get_safebox_messages($safebox){
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    $messages = array();
+    $response = json_decode($this->json_client->get_safebox_messages($safebox->guid))->{'messages'};
+    foreach ($response as $message) {
+      array_push($messages, Message::from_json($message));
+    }
+    return $messages;
+  }
+
+  public function get_safebox_security_options($safebox){
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    $response = json_decode($this->json_client->get_safebox_security_options($safebox->guid))->{'security_options'};
+    return SecurityOptions::from_json($response);
+  }
+
+  public function get_safebox_download_activity($safebox){
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    $response = json_decode($this->json_client->get_safebox_download_activity($safebox->guid))->{'download_activity'};
+    return DownloadActivity::from_json($response);
+  }
+
+  public function get_safebox_event_history($safebox){
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    $event_history = array();
+    $response = json_decode($this->json_client->get_safebox_event_history($safebox->guid))->{'event_history'};
+    foreach ($response as $event) {
+      array_push($event_history, EventHistory::from_json($event));
+    }
+    return $event_history;
+  }
+
+  public function add_time($safebox, $value, $time_unit) {
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    $params = '{"safebox":{"add_time_value":'.$value.',"add_time_unit":"'.$time_unit.'"}}';
+    echo $params;
+    $response = json_decode($this->json_client->add_time($safebox->guid, $params));
+    $safebox->expiration = $response->new_expiration;
+    return $response;
+  }
+
+  public function close_safebox($safebox) {
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    return json_decode($this->json_client->close_safebox($safebox->guid));
+  }
+
+  public function delete_safebox_content($safebox) {
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    return json_decode($this->json_client->delete_safebox_content($safebox->guid));
+  }
+
+  public function mark_as_read($safebox) {
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    return json_decode($this->json_client->mark_as_read($safebox->guid));
+  }
+
+  public function mark_as_unread($safebox) {
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    return json_decode($this->json_client->mark_as_unread($safebox->guid));
+  }
+
+  public function mark_as_read_message($safebox, $message) {
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    if($message->get_id() == null) {
+      throw new SendSecureException(0, "Message ID cannot be null");
+    }
+    return json_decode($this->json_client->mark_as_read_message($safebox->guid, $message->get_id()));
+  }
+
+  public function mark_as_unread_message($safebox, $message) {
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    if($message->get_id() == null) {
+      throw new SendSecureException(0, "Message ID cannot be null");
+    }
+    return json_decode($this->json_client->mark_as_unread_message($safebox->guid, $message->get_id()));
+  }
+
+  public function search_recipient($term) {
+    return json_decode($this->json_client->search_recipient($term));
+  }
+
+  public function get_file_url($safebox, $document) {
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    if($document->guid == null) {
+      throw new SendSecureException(0, "Document GUID cannot be null");
+    }
+    if($safebox->user_email == null) {
+      throw new SendSecureException(0, "SafeBox user email cannot be null");
+    }
+    $response = json_decode($this->json_client->get_file_url($safebox->guid, $document->guid, $safebox->user_email));
+    return $response->url;
+  }
+
+  public function get_audit_record_url($safebox) {
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    $response = json_decode($this->json_client->get_audit_record_url($safebox->guid));
+    return $response->url;
+  }
+
+  public function get_audit_record_pdf($safebox) {
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    return $this->json_client->get_audit_record_pdf($safebox->guid);
+  }
+
+
+  public function reply($safebox, $reply) {
+    if($safebox->guid == null) {
+      throw new SendSecureException(0, "SafeBox GUID cannot be null");
+    }
+    foreach ($reply->attachments as $attachment) {
+      $file_params = $safebox->temporary_document($attachment->size);
+      $file_response = json_decode($this->json_client->new_file($safebox->guid, $file_params));
+      $this->upload_reply_attachment($file_response->upload_url, $attachment);
+      array_push($reply->document_ids, $attachment->guid);
+    }
+    return json_decode($this->json_client->reply($safebox->guid, $reply->to_json()));
+  }
+
+  public function get_consent_group_messages($consent_group_id) {
+    $response = json_decode($this->json_client->get_consent_group_messages($consent_group_id))->consent_message_group;
+    return ConsentMessageGroup::from_json($response);
   }
 
 

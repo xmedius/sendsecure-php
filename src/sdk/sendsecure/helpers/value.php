@@ -1,19 +1,18 @@
 <?php namespace SendSecure;
 
 /**
- * Class Value represent the value on a SecurityProfile
+ * Class Value represent the value on a SecurityProfile.
  */
-
 class Value {
 
   public $value = null;
   public $modifiable = null; //boolean
 
   /**
-    * @desc constructor
-    * @param string $value, value
-    * @param string $modifiable, boolean
-  */
+   * @desc constructor
+   * @param string $value, value
+   * @param string $modifiable, boolean
+   */
   public function __construct($value, $modifiable) {
     $this->value = $value;
     $this->modifiable = $modifiable;

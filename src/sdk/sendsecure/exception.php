@@ -35,39 +35,8 @@ class SendSecureException extends \Exception
       * @return json, request json result
     */
     public function __construct($code, $message = 'unexpected server response format', $response_content = '', Exception $previous = null) {
-
-        switch ($code) {
-          case 100:
-            $message = 'unexpected error';
-            break;
-          case 101:
-            $message = 'invalid permalink';
-            break;
-          case 101:
-            $message = 'invalid credentials';
-            break;
-          case 101:
-            $message = 'missing application_type parameter';
-            break;
-          case 101:
-            $message = 'missing device_id parameter';
-            break;
-          case 101:
-            $message = 'missing device_name parameter';
-            break;
-          case 101:
-            $message = 'otp needed';
-            break;
-          case 404:
-            $message = 'not found';
-            break;
-          case 500:
-            $message = 'unexpected error';
-            break;
-          default:
-            $message = 'unexpected exception';
-            break;
-        }
+        $this->code = $code;
+        $this->message = $message;
         $this->response_content = $response_content;
         // make sure everything is assigned properly
         parent::__construct($message, $code, $previous);
